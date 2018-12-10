@@ -210,9 +210,21 @@ def _setup_deps(deps, name, working_dir):
       link_flags = list(link_flags),
       lib_flags = ["-L-L%s" % deps_dir])
 
+def _d_shared_library_impl(ctx):
+  """Implementation of the d_shared_library rule."""
+  return _d_generic_library_impl(ctx, True)
+
 def _d_library_impl(ctx):
   """Implementation of the d_library rule."""
+  return _d_generic_library_impl(ctx, False)
+
+def _d_generic_library_impl(ctx, shared):
+  """Implementation of the d_library and d_shared_library rules."""
   d_lib = ctx.outputs.d_lib
+  if shared:
+    flags = ['-shared']
+  else:
+    flags = ['-lib']
 
   # Dependencies
   depinfo = _setup_deps(ctx.attr.deps, ctx.label.name, d_lib.dirname)
@@ -223,7 +235,7 @@ def _d_library_impl(ctx):
       srcs = [src.path for src in ctx.files.srcs],
       out = d_lib,
       depinfo = depinfo,
-      extra_flags = ["-lib"])
+      extra_flags = flags)
 
   compile_inputs = (
       ctx.files.srcs +
@@ -439,6 +451,14 @@ d_library = rule(
     attrs = dict(_d_common_attrs.items() + _d_compile_attrs.items()),
     outputs = {
         "d_lib": "lib%{name}.a",
+    },
+)
+
+d_shared_library = rule(
+    _d_library_impl,
+    attrs = dict(_d_common_attrs.items() + _d_compile_attrs.items()),
+    outputs = {
+        "d_lib": "lib%{name}.so",
     },
 )
 
