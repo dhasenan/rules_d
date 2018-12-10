@@ -82,6 +82,12 @@ def _format_version(name):
   """Formats the string name to be used in a --version flag."""
   return name.replace("-", "_")
 
+def _format_include(im, ctx):
+  """Formats the include path into a -I flag"""
+  if ctx.label.package:
+    return "-I%s/%s" % (ctx.label.package, im)
+  return "-I" + im
+
 def _build_compile_command(ctx, srcs, out, depinfo, extra_flags=[]):
   """Returns a string containing the D compile command."""
   toolchain = _d_toolchain(ctx)
@@ -96,7 +102,7 @@ def _build_compile_command(ctx, srcs, out, depinfo, extra_flags=[]):
           "-w",
           "-g",
       ] +
-      ["-I%s/%s" % (ctx.label.package, im) for im in ctx.attr.imports] +
+      [_format_include(im, ctx) for im in ctx.attr.imports] +
       ["-I%s" % im for im in depinfo.imports] +
       toolchain.import_flags +
       ["-version=Have_%s" % _format_version(ctx.label.name)] +
