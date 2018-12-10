@@ -1,4 +1,5 @@
 package(default_visibility = ["//visibility:public"])
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 filegroup(
     name = "srcs",
